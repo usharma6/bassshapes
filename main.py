@@ -1,15 +1,15 @@
 import matplotlib.pyplot as pyplt
 import numpy as np
 import re
-from a_major import a_major_map
+from scales import a_major_map, c_major_map
 
 def parser(filename):
     header_splitter = re.compile('###\\s+')
     note_splitter = re.compile(',\\s+')
     value_splitter = re.compile(':')
-    #octave_splitter = re.compile('\-+|\++')
+    #note_map = c_major_map()
     note_map = a_major_map()
-    
+
     pitches = []
     times = []
 
@@ -25,7 +25,7 @@ def parser(filename):
             pitch += 7
             value = value[:-1]
         elif octave == '-':
-            pitch -= 8
+            pitch -= 7
             value = value[:-1]
 
         pitch += note_map[value]
@@ -36,42 +36,37 @@ def parser(filename):
     return pitches, times
 
 def make_colors(pitches):
-    clr_map = {0:'#FFFFFF', 1:'#ee1100', 1.5:'#ff3311', 2:'#ff4422', 2.5:'#ff6644', 3:'#feae2d', 4:'#d0c310', 4.5:'#aacc22', 5:'#69d025', 5.5:'#22ccaa', 6:'#4444dd', 6.5:'#3311bb', 7:'#442299'}
+    clr_map = {-1:'#FFFFFF', 0:'#ee1100', 0.5:'#ff3311', 1:'#ff4422', 1.5:'#ff6644', 2:'#feae2d', 3:'#d0c310', 3.5:'#aacc22', 4:'#69d025', 4.5:'#22ccaa', 5:'#4444dd', 5.5:'#3311bb', 6:'#442299'}
     clrs = []
     for p in pitches:
-        if (p % 8 != 0):
-            clrs.append(clr_map[p % 8])
+        if np.isnan(p):
+            clrs.append(clr_map[-1])
+        elif (p % 7 != 0):
+            clrs.append(clr_map[p % 7])
         else:
-            if p ==0:
-                clrs.append(clr_map[0])
-            else:
-                clrs.append(clr_map[1])
+            clrs.append(clr_map[0])
     return clrs
 
 def set_ticks(times):
     last = times[-1]
     ticks = np.arange(start = 0, stop = last, step = 4)
-    print(ticks)
     return ticks
 
 def main():
-    pitches, times = parser('oh_darling.txt')
+    pitches, times = parser('songs/oh_darling.txt')
+    #pitches, times = parser('songs/cissy_strut.txt')
+    #pitches, times = parser('songs/1612.txt')
     x = np.cumsum(times)
-    #print(pitches)
-    #print(times)
-    #print(x)
-    note_map = a_major_map()
-    print(note_map.values())
-    values = note_map.values()
-    print(values)
-    fig = pyplt.figure(figsize = (50, 10))
+    fig = pyplt.figure(figsize = (100, 10))
     pyplt.yticks(np.arange(start = -8, stop = 16, step = 0.5))
     pyplt.xticks(set_ticks(x))
+    #pitches = np.ma.masked_where(pitches == 0, pitches) 
     colors = make_colors(pitches)
-    pyplt.scatter(x,pitches, c=colors)
-    pyplt.plot(x,pitches)
-    pyplt.savefig('oh_darling.png', bbox_inches = 'tight')
+    pyplt.scatter(x, pitches, c=colors)
+    pyplt.plot(x, pitches)
+    #pyplt.savefig('charts/1612.png', bbox_inches = 'tight')
+    #pyplt.savefig('charts/cissy_strut.png', bbox_inches = 'tight')
+    pyplt.savefig('charts/oh_darling.png', bbox_inches = 'tight')
     
 if __name__ == '__main__':
     main()
-    #parser("oh_darling.txt")
